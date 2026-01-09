@@ -8,8 +8,6 @@ A generic, reusable Java library for solving constraint satisfaction problems us
 - **Configurable**: Flexible GA parameters (population size, mutation rate, crossover rate, etc.)
 - **Multiple Selection Methods**: Roulette wheel and tournament selection
 - **Elitism Support**: Preserve best solutions across generations
-- **Production Ready**: Includes serialization, deep cloning, and error handling
-
 ## Project Structure
 
 ```
