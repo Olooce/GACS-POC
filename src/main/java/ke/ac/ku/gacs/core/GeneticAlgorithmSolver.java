@@ -41,6 +41,16 @@ public class GeneticAlgorithmSolver<P extends Problem, C extends Chromosome<P>> 
      * Execute the genetic algorithm
      */
     public GAResult<P, C> solve(P problem) {
+        // Validate problem definition
+        if (problem == null) {
+            throw new IllegalArgumentException("Problem cannot be null");
+        }
+
+        // Validate population size
+        if (config.getPopulationSize() <= 0) {
+            throw new IllegalArgumentException("Population size must be positive");
+        }
+
         result = new GAResult<>();
         result.setStartTime(System.currentTimeMillis());
 
@@ -98,9 +108,20 @@ public class GeneticAlgorithmSolver<P extends Problem, C extends Chromosome<P>> 
         for (int i = 0; i < config.getPopulationSize(); i++) {
             C chromosome = chromosomeFactory.create(problem);
             double fitness = fitnessEvaluator.evaluate(chromosome, problem);
+
+            // Handle invalid fitness values
+            if (Double.isNaN(fitness) || Double.isInfinite(fitness) || fitness < 0) {
+                throw new IllegalStateException("Invalid fitness value: " + fitness + " for chromosome at index " + i);
+            }
+
             chromosome.setFitness(fitness);
             currentGeneration.add(chromosome);
             currentGenerationFitness += fitness;
+        }
+
+        // Validate population was created
+        if (currentGeneration.isEmpty()) {
+            throw new IllegalStateException("Failed to initialize population");
         }
 
         Collections.sort(currentGeneration);
@@ -140,6 +161,12 @@ public class GeneticAlgorithmSolver<P extends Problem, C extends Chromosome<P>> 
             }
 
             double fitness = fitnessEvaluator.evaluate(offspring, problem);
+
+            // Handle invalid fitness values
+            if (Double.isNaN(fitness) || Double.isInfinite(fitness) || fitness < 0) {
+                throw new IllegalStateException("Invalid fitness value: " + fitness + " during offspring evaluation");
+            }
+
             offspring.setFitness(fitness);
 
             nextGeneration.add(offspring);
@@ -179,7 +206,8 @@ public class GeneticAlgorithmSolver<P extends Problem, C extends Chromosome<P>> 
     }
 
     private C selectParentTournament() {
-        int tournamentSize = Math.min(5, config.getPopulationSize() / 10);
+        // Handle edge case: ensure tournament size is at least 1
+        int tournamentSize = Math.max(1, Math.min(5, config.getPopulationSize() / 10));
         C best = null;
 
         for (int i = 0; i < tournamentSize; i++) {
